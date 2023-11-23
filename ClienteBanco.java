@@ -26,12 +26,13 @@ public class ClienteBanco {
                 switch (opcao) {
                     case 1:
                         realizarOperacao(output, input, TipoOperacao.SAQUE);
+
                         break;
                     case 2:
                         realizarOperacao(output, input, TipoOperacao.DEPOSITO);
                         break;
                     case 3:
-                        realizarOperacao(output, input, TipoOperacao.SALDO);
+                        consultasaldo(output, input);
                         break;
                     case 4:
                         realizarOperacaoTransferencia(output, input);
@@ -47,16 +48,47 @@ public class ClienteBanco {
         }
     }
 
-    private static void realizarOperacao(ObjectOutputStream output, ObjectInputStream input, TipoOperacao saque) {
+    private static void realizarOperacao(ObjectOutputStream output, ObjectInputStream input, TipoOperacao tipoOperacao) {
+        try (Scanner scanner = new Scanner(System.in)) {
+            System.out.print("Digite o número da conta: ");
+            String numeroConta = scanner.next();
+
+            System.out.print("Digite o valor: ");
+            double valor = scanner.nextDouble();
+    
+            MensagemCliente mensagem = new MensagemCliente(numeroConta, tipoOperacao, valor);
+            output.writeObject(mensagem);
+    
+            MensagemServidor resposta = (MensagemServidor) input.readObject();
+            System.out.println(resposta.getMensagem());
+        } catch (InputMismatchException | IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
     }
+    
 
     private static void exibirMenu() {
-        System.out.println("Escolha uma operação:");
+        System.out.println("\nEscolha uma operação:");
         System.out.println("1. Saque");
         System.out.println("2. Depósito");
         System.out.println("3. Saldo");
         System.out.println("4. Transferência");
         System.out.println("0. Sair");
+    }
+    private static void consultasaldo(ObjectOutputStream output, ObjectInputStream input) {
+        try (Scanner scanner = new Scanner(System.in)) {
+            System.out.print("Digite o número da conta: ");
+            String numeroConta = scanner.next();
+            
+            double valor;
+            MensagemCliente mensagem = new MensagemCliente(numeroConta, TipoOperacao.SALDO, valor=0.0);
+            output.writeObject(mensagem);
+    
+            MensagemServidor resposta = (MensagemServidor) input.readObject();
+            System.out.println(resposta.getMensagem());
+        } catch (InputMismatchException | IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
     }
     private static boolean realizarOperacaoTransferencia(ObjectOutputStream output, ObjectInputStream input) throws IOException, ClassNotFoundException {
         Scanner scanner = new Scanner(System.in);
